@@ -19,8 +19,10 @@ export function ChatSidebar({
   const { theme, setTheme } = useTheme();
   
   const models = [
-    { id: "gpt-4o-mini", name: "GPT-4 Mini" },
-    { id: "gpt-4o", name: "GPT-4" },
+    { id: "meta-llama/Llama-Vision-Free", name: "Llama Vision" },
+    { id: "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free", name: "Llama 3.3 70B" },
+    { id: "deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free", name: "DeepSeek R1" },
+    { id: "google/gemma-2-27b-it", name: "gemma 2 27B" },
   ];
 
   return (
