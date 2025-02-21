@@ -24,7 +24,7 @@ const Chat = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [selectedModel, setSelectedModel] = useState("gpt-4o-mini");
+  const [selectedModel, setSelectedModel] = useState("meta-llama/Llama-3.3-70B-Instruct-Turbo-Free");
   const currentStreamController = useRef<AbortController | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatBoxRef = useRef<HTMLDivElement>(null);
@@ -37,7 +37,7 @@ const Chat = () => {
     formData.append('image', file);
 
     try {
-      const response = await fetch('/upload-image', {
+      const response = await fetch('https://assisttalk.onrender.com/upload-image', {
         method: 'POST',
         body: formData
       });
@@ -90,7 +90,7 @@ const Chat = () => {
     currentStreamController.current = controller;
 
     try {
-      const response = await fetch('/chat', {
+      const response = await fetch('https://assisttalk.onrender.com/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
