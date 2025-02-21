@@ -71,92 +71,42 @@ const Chat = () => {
   };
 
   const handleSendMessage = async (skipInput = false) => {
-    if (currentStreamController.current) {
-      currentStreamController.current.abort();
-      currentStreamController.current = null;
-    }
-
     if (!skipInput && !input.trim()) return;
 
+    const newMessage: Message = { role: "user", content: input };
     if (!skipInput) {
-      const newMessage: Message = { role: "user", content: input };
-      setMessages(prev => [...prev, newMessage]);
-      setInput("");
+        setMessages(prev => [...prev, newMessage]);
+        setInput("");
     }
 
     setIsLoading(true);
 
-    const controller = new AbortController();
-    currentStreamController.current = controller;
-
     try {
-      const response = await fetch('https://assisttalk.onrender.com/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: input,
-          messages,
-          model: selectedModel
-        }),
-        signal: controller.signal
-      });
+        const response = await fetch('https://assisttalk.onrender.com/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                message: input,
+                messages: [...messages, newMessage],
+                model: selectedModel
+            }),
+            mode: 'cors'  // Ensures CORS is handled
+        });
 
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
+        if (!response.ok) throw new Error('Failed to fetch response');
 
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      let assistantResponse = '';
-
-      if (reader) {
-        setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
-
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value);
-          const lines = chunk.split('\n');
-
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              try {
-                const data = JSON.parse(line.slice(6));
-                if (data.choices && data.choices[0]) {
-                  const text = data.choices[0].text;
-                  assistantResponse += text;
-                  setMessages(prev => {
-                    const newMessages = [...prev];
-                    newMessages[newMessages.length - 1].content = assistantResponse;
-                    return newMessages;
-                  });
-
-                  // Scroll to bottom
-                  if (chatBoxRef.current) {
-                    chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
-                  }
-                }
-              } catch (e) {
-                continue;
-              }
-            }
-          }
-        }
-      }
+        const data = await response.json();
+        setMessages(prev => [...prev, { role: "assistant", content: data.response }]);
     } catch (error) {
-      if (error.name === 'AbortError') return;
-      
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: 'Sorry, there was an error processing your request.'
-      }]);
-      console.error('Error:', error);
+        console.error('Error:', error);
+        setMessages(prev => [...prev, { role: "assistant", content: "Sorry, there was an error." }]);
     } finally {
-      setIsLoading(false);
-      currentStreamController.current = null;
+        setIsLoading(false);
     }
-  };
+};
 
   const handleResetChat = () => {
     if (currentStreamController.current) {
